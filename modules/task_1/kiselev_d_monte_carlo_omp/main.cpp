@@ -3,6 +3,10 @@
 #include <iostream>
 #include <random>
 
+#define DEFAULT_NPOINTS 10000
+#define DEFAULT_LEFT_BORDER 0.0
+#define DEFAULT_RIGHT_BORDER 1.0
+
 /* This is a simple parabola function, which we
    will integrate using the Monte Carlo method. */
 double parabola(double x) {
@@ -10,10 +14,18 @@ double parabola(double x) {
 }
 
 int main(int argc, char *argv[]) {
-    // Getting program call arguments
-    int nPoints = atoi(argv[1]);
-    double leftBorder = atof(argv[2]);
-    double rightBorder = atof(argv[3]);
+    int nPoints;
+    double leftBorder, rightBorder;
+
+    if (argc == 1) {
+        nPoints = DEFAULT_NPOINTS;
+        leftBorder = DEFAULT_LEFT_BORDER;
+        rightBorder = DEFAULT_RIGHT_BORDER;
+    } else {
+        nPoints = atoi(argv[1]);
+        leftBorder = atof(argv[2]);
+        rightBorder = atof(argv[3]);
+    }
 
     // Creating a generator and distribution
     // for random double numbers in the range
