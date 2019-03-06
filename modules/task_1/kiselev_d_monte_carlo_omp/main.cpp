@@ -1,8 +1,8 @@
 // Copyright Kiselev Denis 2019
 
+#include <cfloat>
 #include <iostream>
 #include <random>
-#include <climits>
 
 #define DEFAULT_NPOINTS 10000
 #define DEFAULT_LEFT_BORDER 0.0
