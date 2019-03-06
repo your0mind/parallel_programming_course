@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <random>
-#include <ctime>
 
 /* This is a simple parabola function, which we
    will integrate using the Monte Carlo method. */
@@ -11,8 +10,6 @@ double parabola(double x) {
 }
 
 int main(int argc, char *argv[]) {
-    srand(time(NULL));
-
     // Getting program call arguments
     int nPoints = atoi(argv[1]);
     double leftBorder = atof(argv[2]);
@@ -20,9 +17,10 @@ int main(int argc, char *argv[]) {
 
     // Creating a generator and distribution
     // for random double numbers in the range
-    std::default_random_engine generator(time(NULL));
-    std::uniform_real_distribution<double> distribution(leftBorder,
-                                                        rightBorder);
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::uniform_real_distribution<double> distribution(
+        leftBorder, std::nextafter(rightBorder, DBL_MAX));
 
     // The sum of the random values of our parabola
     double sum = 0.0;
