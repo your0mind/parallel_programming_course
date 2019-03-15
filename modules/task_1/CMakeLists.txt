@@ -1,5 +1,6 @@
 message(STATUS "Task 1")
 
+<<<<<<< HEAD
 add_subdirectory(muravev_d_hoar_sort_simple_merge_omp)
 add_subdirectory(lalykin_o_radix_batcher_omp)
 add_subdirectory(kutovoi_v_rectangle_integr_omp)
@@ -19,3 +20,10 @@ add_subdirectory(chernenko_v_linear_filtering_omp)
 add_subdirectory(kiselev_d_monte_carlo_omp)
 add_subdirectory(sharov_i_multiMatCRSComplex_omp)
 add_subdirectory(ermachenko_b_filtr_gauss_block_omp)
+=======
+SUBDIRLIST(subdirs ${CMAKE_CURRENT_SOURCE_DIR})
+
+foreach(subd ${subdirs})
+  add_subdirectory(${subd})
+endforeach()
+>>>>>>> master
