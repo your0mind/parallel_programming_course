@@ -21,14 +21,14 @@
 #define Z1 -3.0
 #define Z2 3.0
 
-double ellipsoid(std::vector<double> args) {
+double ellipsoid(const std::vector<double>& args) {
     return -1.0 + pow(args[0] / ELLPS_A, 2)
                 + pow(args[1] / ELLPS_B, 2)
                 + pow(args[2] / ELLPS_C, 2);
 }
 
 double integrateByMonteCarlo(
-        std::function<double(std::vector<double>)> func,
+        std::function<double(const std::vector<double>&)> func,
         std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
     std::vector<std::uniform_real_distribution<> > distrs(dimension);
@@ -55,7 +55,7 @@ double integrateByMonteCarlo(
 }
 
 double integrateByMonteCarloParallel(
-        std::function<double(std::vector<double>)> func,
+        std::function<double(std::vector<double>&)> func,
         std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
     std::vector<std::uniform_real_distribution<> > distrs(dimension);
