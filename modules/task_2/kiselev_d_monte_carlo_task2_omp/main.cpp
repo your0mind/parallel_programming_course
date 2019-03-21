@@ -1,6 +1,7 @@
 // Copyright Kiselev Denis 2019
 
 #include <cfloat>
+#include <functional>
 #include <iostream>
 #include <random>
 #include <omp.h>
@@ -20,24 +21,42 @@
 #define Z1 -3.0
 #define Z2 3.0
 
-typedef double (*vFunctionCall)(std::vector<double> args);
-
-// This is a simple elipsoid function, which we
-// will integrate using the Monte Carlo method. 
-double ellipsoid(double x, double y, double z) {
-    return - 1.0 + pow(x / ELLPS_A, 2)
-                 + pow(y / ELLPS_B, 2)
-                 + pow(z / ELLPS_C, 2);
-}
-
 double ellipsoid(std::vector<double> args) {
     return -1.0 + pow(args[0] / ELLPS_A, 2)
                 + pow(args[1] / ELLPS_B, 2)
                 + pow(args[2] / ELLPS_C, 2);
 }
 
-// TODO: change name 
-double integrate(vFunctionCall func, std::vector<std::pair<double, double> > limits, int nPoints) {
+double integrateByMonteCarlo(
+        std::function<double(std::vector<double>)> func,
+        std::vector<std::pair<double, double> > limits, int nPoints) {
+    int dimension = limits.size();
+    std::vector<std::uniform_real_distribution<> > distrs(dimension);
+
+    double measure = 1.0;
+    for (size_t i = 0; i < dimension; i++) {
+        measure *= limits[i].second - limits[i].first;
+        distrs[i].param(std::uniform_real_distribution<>::param_type(
+            limits[i].first, limits[i].second));
+    }
+
+    int nPointsInEllipsoid = 0;
+    std::default_random_engine generator();
+    std::vector<double> args(dimension);
+    for (int i = 0; i < nPoints; i++) {
+        for (size_t j = 0; j < dimension; j++)
+            args[j] = distrs[j](generator);
+        double value = func(args);
+        if (value <= 0) nPointsInEllipsoid++;
+    }
+
+    double avgValueOfHits = static_cast<double>(nPointsInEllipsoid) / nPoints;
+    return measure * avgValueOfHits;
+}
+
+double integrateByMonteCarloParallel(
+        std::function<double(std::vector<double>)> func,
+		std::vector<std::pair<double, double> > limits, int nPoints) {
     std::default_random_engine generator;
     std::vector<std::uniform_real_distribution<> > distrs(limits.size());
     for (size_t i = 0; i < limits.size(); i++) {
@@ -59,8 +78,10 @@ double integrate(vFunctionCall func, std::vector<std::pair<double, double> > lim
         }
     }
     double avgValueOfHits = static_cast<double>(nPointsInEllipsoid) / nPoints;
-    // TODO: fix
-    return (X2 - X1) * (Y2 - Y1) * (Z2 - Z1) * avgValueOfHits;
+    double measure = 1.0;
+    for (auto limit : limits)
+        measure *= limit.second - limit.first;
+    return measure * avgValueOfHits;
 }
 
 int main(int argc, char *argv[]) {
@@ -70,7 +91,7 @@ int main(int argc, char *argv[]) {
     // Sequential code
     double t1 = omp_get_wtime();
     omp_set_num_threads(1);
-    double result = integrate(ellipsoid, { {X1, X2}, {Y1, Y2}, {Z1, Z2} }, nPoints);
+    double result = inte(ellipsoid, { { X1, X2 }, { Y1, Y2 }, { Z1, Z2 } }, nPoints);
     double seqTime = omp_get_wtime() - t1;
     std::cout.precision(8);
     std::cout << std::fixed;
