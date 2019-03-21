@@ -1,10 +1,13 @@
 // Copyright Kiselev Denis 2019
 
 #include <omp.h>
+
 #include <cfloat>
 #include <functional>
 #include <iostream>
 #include <random>
+#include <utility>
+#include <vector>
 
 #define DEFAULT_NPOINTS 100000
 
