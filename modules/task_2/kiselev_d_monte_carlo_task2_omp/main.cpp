@@ -34,13 +34,13 @@ double integrateByMonteCarlo(
         std::function<double(const std::vector<double>&)> func,
         std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
-    std::vector<std::uniform_real_distribution<> > distrs(dimension);
+    std::vector<std::uniform_real_distribution<> > distrs;
+    distrs.reserve(dimension);
 
     double measure = 1.0;
     for (int i = 0; i < dimension; i++) {
         measure *= limits[i].second - limits[i].first;
-        distrs[i].param(std::uniform_real_distribution<>::param_type(
-            limits[i].first, limits[i].second));
+        distrs.emplace_back(limits[i].first, limits[i].second);
     }
 
     int nPointsInEllipsoid = 0;
@@ -53,22 +53,22 @@ double integrateByMonteCarlo(
         if (value <= 0) nPointsInEllipsoid++;
     }
 
-    double avgValueOfHits = static_cast<double>(nPointsInEllipsoid) / nPoints;
-    return measure * avgValueOfHits;
+    double hitProbability = static_cast<double>(nPointsInEllipsoid) / nPoints;
+    return measure * hitProbability;
 }
 
 double integrateByMonteCarloParallel(
         std::function<double(std::vector<double>&)> func,
         std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
-    std::vector<std::uniform_real_distribution<> > distrs(dimension);
+    std::vector<std::uniform_real_distribution<> > distrs;
+    distrs.reserve(dimension);
 
     double measure = 1.0;
     #pragma omp parallel for reduction(*: measure)
     for (int i = 0; i < dimension; i++) {
         measure *= limits[i].second - limits[i].first;
-        distrs[i].param(std::uniform_real_distribution<>::param_type(
-            limits[i].first, limits[i].second));
+        distrs.emplace_back(limits[i].first, limits[i].second);
     }
 
     int nPointsInEllipsoid = 0;
@@ -84,12 +84,13 @@ double integrateByMonteCarloParallel(
             if (value <= 0) nPointsInEllipsoid++;
         }
     }
-    double avgValueOfHits = static_cast<double>(nPointsInEllipsoid) / nPoints;
-    return measure * avgValueOfHits;
+
+    double hitProbability = static_cast<double>(nPointsInEllipsoid) / nPoints;
+    return measure * hitProbability;
 }
 
 int main(int argc, char *argv[]) {
-    int nPoints = (argc == 1) ? DEFAULT_NPOINTS : atoi(argv[1]);
+    int nPoints = (argc > 1) ? atoi(argv[1]) : DEFAULT_NPOINTS;
 
     // Sequential
     double t1 = omp_get_wtime();
@@ -105,13 +106,13 @@ int main(int argc, char *argv[]) {
 
     double realRes = 4.0 / 3.0 * std::acos(-1) * ELLPS_A * ELLPS_B * ELLPS_C;
     double acceleration = seqTime / parTime;
-    std::cout << "Sequential alg:" << std::endl
-              << "\tResult: " << seqResult << std::endl
-              << "\tTime: " << seqTime << " sec" << std::endl
-              << "Parallel alg:" << std::endl
-              << "\tResult: " << parResult << std::endl
-              << "\tTime: " << parTime << " sec" << std::endl
-              << "Real result: " << realRes << std::endl
-              << "Acceleration: " << acceleration << std::endl;
+    std::cout << "Sequential alg:\n"
+                 "\tResult: " << seqResult << "\n"
+                 "\tTime: " << seqTime << " sec\n"
+                 "Parallel alg:\n"
+                 "\tResult: " << parResult << "\n"
+                 "\tTime: " << parTime << " sec\n"
+                 "Real result: " << realRes << "\n"
+                 "Acceleration: " << acceleration << "\n";
     return 0;
 }
