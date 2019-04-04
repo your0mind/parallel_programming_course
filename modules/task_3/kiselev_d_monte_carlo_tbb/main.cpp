@@ -71,8 +71,6 @@ double integrateByMonteCarloParallel(
         distrs.emplace_back(limits[i].first, limits[i].second);
     }
 
-    tbb::task_scheduler_init init(tbb::task_scheduler_init::deferred);
-
     int nPointsInEllipsoid = tbb::parallel_reduce(
         tbb::blocked_range<size_t>(0, nPoints), 0,
         [&] (const tbb::blocked_range<size_t>& r, int anotherValue) -> int {
