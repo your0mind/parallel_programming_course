@@ -26,13 +26,13 @@
 
 double ellipsoid(const std::vector<double>& args) {
     return -1.0 + pow(args[0] / ELLPS_A, 2)
-        + pow(args[1] / ELLPS_B, 2)
-        + pow(args[2] / ELLPS_C, 2);
+                + pow(args[1] / ELLPS_B, 2)
+                + pow(args[2] / ELLPS_C, 2);
 }
 
 double integrateByMonteCarlo(
-    std::function<double(const std::vector<double>&)> func,
-    std::vector<std::pair<double, double> > limits, int nPoints) {
+        std::function<double(const std::vector<double>&)> func,
+        std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
     std::vector<std::uniform_real_distribution<> > distrs;
     distrs.reserve(dimension);
@@ -59,8 +59,8 @@ double integrateByMonteCarlo(
 }
 
 double integrateByMonteCarloParallel(
-    std::function<double(std::vector<double>&)> func,
-    std::vector<std::pair<double, double> > limits, int nPoints) {
+        std::function<double(std::vector<double>&)> func,
+        std::vector<std::pair<double, double> > limits, int nPoints) {
     int dimension = limits.size();
     std::vector<std::uniform_real_distribution<> > distrs;
     distrs.reserve(dimension);
@@ -75,7 +75,7 @@ double integrateByMonteCarloParallel(
 
     int nPointsInEllipsoid = tbb::parallel_reduce(
         tbb::blocked_range<size_t>(0, nPoints), 0,
-        [&](const tbb::blocked_range<size_t>& r, int anotherValue) -> int {
+        [&] (const tbb::blocked_range<size_t>& r, int anotherValue) -> int {
             int nPointsInEllipsoid = anotherValue;
             std::vector<double> args(dimension);
             size_t begin = r.begin(), end = r.end();
