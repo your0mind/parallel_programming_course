@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#define DEFAULT_NPOINTS 100000
+#define DEFAULT_NPOINTS 1000000
 
 // Ellipsoid options
 #define ELLPS_A 1.0
