@@ -25,8 +25,8 @@
 
 double ellipsoid(const std::vector<double>& args) {
     return -1.0 + pow(args[0] / ELLPS_A, 2)
-                + pow(args[1] / ELLPS_B, 2)
-                + pow(args[2] / ELLPS_C, 2);
+        + pow(args[1] / ELLPS_B, 2)
+        + pow(args[2] / ELLPS_C, 2);
 }
 
 double integrateByMonteCarlo(
@@ -52,7 +52,7 @@ double integrateByMonteCarlo(
 }
 
 double integrateByMonteCarloParallel(
-    std::function<double(std::vector<double>&)> func,
+    std::function<double(const std::vector<double>&)> func,
     std::vector<std::pair<double, double> > limits,
     const std::vector<std::vector<double> >& points) {
     int dimension = limits.size();
@@ -94,9 +94,9 @@ int main(int argc, char *argv[]) {
 
     std::random_device r;
     std::default_random_engine generator(r());
-    for (auto point : points) {
+    for (int i = 0; i < nPoints; i++) {
         for (int j = 0; j < nDimensions; j++) {
-            point[j] = distrs[j](generator);
+            points[i][j] = distrs[j](generator);
         }
     }
 
