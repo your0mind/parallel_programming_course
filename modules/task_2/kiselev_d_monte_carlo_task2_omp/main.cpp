@@ -45,7 +45,8 @@ double integrateByMonteCarlo(
 
     int nPointsInEllipsoid = 0;
     std::vector<double> args(dimension);
-    std::default_random_engine generator(omp_get_thread_num());
+    std::random_device r;
+    std::default_random_engine generator(r());
     for (int i = 0; i < nPoints; i++) {
         for (int j = 0; j < dimension; j++)
             args[j] = distrs[j](generator);
@@ -65,7 +66,6 @@ double integrateByMonteCarloParallel(
     distrs.reserve(dimension);
 
     double measure = 1.0;
-    #pragma omp parallel for reduction(*: measure)
     for (int i = 0; i < dimension; i++) {
         measure *= limits[i].second - limits[i].first;
         distrs.emplace_back(limits[i].first, limits[i].second);
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     double parTime = omp_get_wtime() - t1;
 
     double realRes = 4.0 / 3.0 * std::acos(-1) * ELLPS_A * ELLPS_B * ELLPS_C;
-    double acceleration = seqTime / parTime;
+    double speedUp = seqTime / parTime;
     std::cout << "Sequential alg:\n"
                  "\tResult: " << seqResult << "\n"
                  "\tTime: " << seqTime << " sec\n"
@@ -113,6 +113,6 @@ int main(int argc, char *argv[]) {
                  "\tResult: " << parResult << "\n"
                  "\tTime: " << parTime << " sec\n"
                  "Real result: " << realRes << "\n"
-                 "Acceleration: " << acceleration << "\n";
+                 "Speed up: " << speedUp << "\n";
     return 0;
 }
