@@ -2,10 +2,6 @@
 
 #include <omp.h>
 
-<<<<<<< HEAD
-=======
-#include <cfloat>
->>>>>>> master
 #include <functional>
 #include <iostream>
 #include <random>
@@ -34,42 +30,20 @@ double ellipsoid(const std::vector<double>& args) {
 }
 
 double integrateByMonteCarlo(
-<<<<<<< HEAD
     std::function<double(const std::vector<double>&)> func,
     std::vector<std::pair<double, double> > limits,
     const std::vector<std::vector<double> >& points) {
     int dimension = limits.size();
     int nPoints = points.size();
-=======
-        std::function<double(const std::vector<double>&)> func,
-        std::vector<std::pair<double, double> > limits, int nPoints) {
-    int dimension = limits.size();
-    std::vector<std::uniform_real_distribution<> > distrs;
-    distrs.reserve(dimension);
->>>>>>> master
 
     double measure = 1.0;
     for (int i = 0; i < dimension; i++) {
         measure *= limits[i].second - limits[i].first;
-<<<<<<< HEAD
     }
 
     int nPointsInEllipsoid = 0;
     for (int i = 0; i < nPoints; i++) {
         double value = func(points[i]);
-=======
-        distrs.emplace_back(limits[i].first, limits[i].second);
-    }
-
-    int nPointsInEllipsoid = 0;
-    std::vector<double> args(dimension);
-    std::random_device r;
-    std::default_random_engine generator(r());
-    for (int i = 0; i < nPoints; i++) {
-        for (int j = 0; j < dimension; j++)
-            args[j] = distrs[j](generator);
-        double value = func(args);
->>>>>>> master
         if (value <= 0) nPointsInEllipsoid++;
     }
 
@@ -78,45 +52,23 @@ double integrateByMonteCarlo(
 }
 
 double integrateByMonteCarloParallel(
-<<<<<<< HEAD
     std::function<double(std::vector<double>&)> func,
     std::vector<std::pair<double, double> > limits,
     const std::vector<std::vector<double> >& points) {
     int dimension = limits.size();
     int nPoints = points.size();
-=======
-        std::function<double(std::vector<double>&)> func,
-        std::vector<std::pair<double, double> > limits, int nPoints) {
-    int dimension = limits.size();
-    std::vector<std::uniform_real_distribution<> > distrs;
-    distrs.reserve(dimension);
->>>>>>> master
 
     double measure = 1.0;
     for (int i = 0; i < dimension; i++) {
         measure *= limits[i].second - limits[i].first;
-<<<<<<< HEAD
-=======
-        distrs.emplace_back(limits[i].first, limits[i].second);
->>>>>>> master
     }
 
     int nPointsInEllipsoid = 0;
     #pragma omp parallel reduction(+: nPointsInEllipsoid)
     {
-<<<<<<< HEAD
         #pragma omp for schedule(static)
         for (int i = 0; i < nPoints; i++) {
             double value = func(points[i]);
-=======
-        std::vector<double> args(dimension);
-        std::default_random_engine generator(omp_get_thread_num());
-        #pragma omp for schedule(static)
-        for (int i = 0; i < nPoints; i++) {
-            for (int j = 0; j < dimension; j++)
-                args[j] = distrs[j](generator);
-            double value = func(args);
->>>>>>> master
             if (value <= 0) nPointsInEllipsoid++;
         }
     }
@@ -128,7 +80,6 @@ double integrateByMonteCarloParallel(
 int main(int argc, char *argv[]) {
     int nPoints = (argc > 1) ? atoi(argv[1]) : DEFAULT_NPOINTS;
 
-<<<<<<< HEAD
     // Generation of random points in the region
     std::vector<std::pair<double, double> > limits = { { X1, X2 }, { Y1, Y2 }, { Z1, Z2 } };
     int nDimensions = limits.size();
@@ -152,28 +103,16 @@ int main(int argc, char *argv[]) {
     // Sequential
     double t1 = omp_get_wtime();
     double seqResult = integrateByMonteCarlo(ellipsoid, limits, points);
-=======
-    // Sequential
-    double t1 = omp_get_wtime();
-    double seqResult = integrateByMonteCarlo(
-        ellipsoid, { { X1, X2 }, { Y1, Y2 }, { Z1, Z2 } }, nPoints);
->>>>>>> master
     double seqTime = omp_get_wtime() - t1;
 
     // Parallel
     t1 = omp_get_wtime();
-<<<<<<< HEAD
     double parResult = integrateByMonteCarloParallel(ellipsoid, limits, points);
-=======
-    double parResult = integrateByMonteCarloParallel(
-        ellipsoid, { { X1, X2 }, { Y1, Y2 }, { Z1, Z2 } }, nPoints);
->>>>>>> master
     double parTime = omp_get_wtime() - t1;
 
     double realRes = 4.0 / 3.0 * std::acos(-1) * ELLPS_A * ELLPS_B * ELLPS_C;
     double speedUp = seqTime / parTime;
     std::cout << "Sequential alg:\n"
-<<<<<<< HEAD
         "\tResult: " << seqResult << "\n"
         "\tTime: " << seqTime << " sec\n"
         "Parallel alg:\n"
@@ -181,14 +120,5 @@ int main(int argc, char *argv[]) {
         "\tTime: " << parTime << " sec\n"
         "Real result: " << realRes << "\n"
         "Speed up: " << speedUp << "\n";
-=======
-                 "\tResult: " << seqResult << "\n"
-                 "\tTime: " << seqTime << " sec\n"
-                 "Parallel alg:\n"
-                 "\tResult: " << parResult << "\n"
-                 "\tTime: " << parTime << " sec\n"
-                 "Real result: " << realRes << "\n"
-                 "Speed up: " << speedUp << "\n";
->>>>>>> master
     return 0;
 }
