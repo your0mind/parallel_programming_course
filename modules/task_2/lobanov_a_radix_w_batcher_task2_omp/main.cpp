@@ -1,6 +1,6 @@
 //  Copyright 2019 Lobanov Andrey
 #define nSize 1000
-#define namount 256
+#define namount 1048576
 
 #include <omp.h>
 #include <iostream>
@@ -106,9 +106,10 @@ int main(int argc, char* argv[]) {
 
     t1 = omp_get_wtime();
 
-#pragma omp parallel shared(arr, amount, exp) private(t_id, shift) num_threads(threads)
+#pragma omp parallel shared(arr, amount, step) private(t_id, shift, exp) num_threads(threads)
     {
         t_id = omp_get_thread_num();
+        exp = 1;
 
         shift = t_id * (len / threads);
 
@@ -121,11 +122,7 @@ int main(int argc, char* argv[]) {
             if (t_id < (threads / step)) {
                 merge(arr, shift * step, (step * shift + step * amount) - 1);
             }
-#pragma omp barrier
-#pragma omp single
-            {
-                exp++;
-            }
+            exp++;
         }
     }
 
@@ -147,6 +144,8 @@ int main(int argc, char* argv[]) {
     std::cout << "\n\nElements: " << namount;
     std::cout << "\n\nTime PP for [" << threads << "] threads : " << dt;
     std::cout << "\n\nTime N_PP :" << dt2;
+    std::cout << "\n\nBoost: " << dt2 / dt << std::endl;
+
 
     delete[] arr;
     delete[] arr2;
