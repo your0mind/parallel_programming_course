@@ -6,13 +6,28 @@
 #include <ctime>
 #include <algorithm>
 
-template<typename T>
-void FillingArray(T* array, int n, int min, int max) {
-    std::random_device random_device;
-    std::mt19937 generator(random_device());
-    std::uniform_int_distribution<> distribution(min, max);
-    for (int i = 0; i < n; i++) {
-        array[i] = distribution(generator);
+bool AreArraysEqual(int* arr1, int* arr2, int size) {
+    for (int i = 0; i < size; ++i) {
+        if (arr1[i] != arr2[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void CopyArray(int* src, int* dst, int size) {
+    for (int i = 0; i < size; ++i) {
+        dst[i] = src[i];
+    }
+}
+
+void FillingArray(int* array, int n, int min, int max) {
+    static std::random_device random_device;
+    static std::mt19937 generator(random_device());
+    static std::uniform_int_distribution<> distribution(min, max);
+    int i = 0;
+    while (i < n) {
+        array[i++] = distribution(generator);
     }
 }
 
@@ -44,20 +59,22 @@ void quickSort(int arr[], int left, int right) {
 }
 
 void ShowArray(int* arr, int n) {
-    if (n < 20) {
-        for (int i = 0; i < n; i++) {
-            std::cout << arr[i] << " ";
+    if (n < 19) {
+        int i = 0;
+        while (i < n) {
+            std::cout << arr[i++] << " ";
         }
         std::cout << std::endl;
     }
 }
 
-void Merge_Two_Arrays_Into_Tmp(int* arr1, int* arr2, int* tmp, int size1, int size2) {
+void Merge_Two_Arrays_Into_Tmp(int* arr1, int* arr2,
+    int* tmp, int size1, int size2) {
     int index1 = 0;
     int index2 = 0;
     int i = 0;
 
-    while ((index1 != size1) && (index2 != size2)) {
+    for (; (index1 != size1) && (index2 != size2); i++) {
         if (arr1[index1] <= arr2[index2]) {
             tmp[i] = arr1[index1];
             index1++;
@@ -65,59 +82,30 @@ void Merge_Two_Arrays_Into_Tmp(int* arr1, int* arr2, int* tmp, int size1, int si
             tmp[i] = arr2[index2];
             index2++;
         }
-        i++;
     }
 
     if (index1 == size1) {
         int j = index2;
-        for (; j < size2; j++, i++) {
-            tmp[i] = arr2[j];
+        while (j < size2) {
+            tmp[i++] = arr2[j++];
         }
     } else {
         int j = index1;
-        for (; j < size1; j++, i++) {
-            tmp[i] = arr1[j];
+        while (j < size1) {
+            tmp[i++] = arr1[j++];
         }
     }
 }
 
-int BinSearch(int* arr, int left, int right, int x) {
-    if (left == right) {
-        return left;
-    }
-    if (left + 1 == right) {
-        if (x < arr[1]) {
-            return 1;
-        } else {
-            return right;
-        }
-    }
-    int middle = (left + right) / 2;
-    if (x < arr[middle]) {
-        right = middle;
-    } else {
-        if (x > arr[middle]) {
-            left = middle;
-        } else {
-            return middle;
-        }
-    }
-    return BinSearch(arr, left, right, x);
-}
-
-void Merge_Two_Arrays_Into_Res(int* arr1, int* arr2, int size1, int size2, int* res) {
-    int x = arr1[size1/2];
-    int x1 = BinSearch(arr2, 0, size2, x);
+void Merge_Two_Arrays_Into_Res(int* arr1, int* arr2,
+    int size1, int size2, int* res) {
+    int x = arr1[size1 / 2];
+    auto it = std::lower_bound(arr2, arr2 + size2, x);
+    int x1 = std::distance(arr2, it);
     int nSize1 = size1 / 2 + x1;
-    int nSize2 = size1 + size2 - nSize1;
-    int* tmp1 = new int[nSize1];
-    int* tmp2 = new int[nSize2];
-    Merge_Two_Arrays_Into_Tmp(arr1, arr2, tmp1, size1 / 2, x1);
-    Merge_Two_Arrays_Into_Tmp(arr1 + size1 / 2, arr2 + x1, tmp2, size1 - size1 / 2, size2 - x1);
-    std::copy(tmp1, tmp1 + nSize1, res);
-    std::copy(tmp2, tmp2 + nSize2, res + nSize1);
-    delete[] tmp1;
-    delete[] tmp2;
+    Merge_Two_Arrays_Into_Tmp(arr1, arr2, res, size1 / 2, x1);
+    Merge_Two_Arrays_Into_Tmp(arr1 + size1 / 2, arr2 + x1,
+        res + nSize1, size1 - size1 / 2, size2 - x1);
 }
 
 void QuickSortMerge(int* array, int* res, int size, int pNum) {
@@ -125,41 +113,25 @@ void QuickSortMerge(int* array, int* res, int size, int pNum) {
         quickSort(array, 0, size - 1);
 #pragma omp critical
         {
-            // std::cout << "Thread " << pNum - omp_get_thread_num() << " got and sort part of the array:" << std::endl;
             ShowArray(array, size);
         }
-    } else if (pNum > 1) {
+    } else {
 #pragma omp parallel sections
         {
 #pragma omp section
             QuickSortMerge(array, res, size / 2, pNum / 2);
 #pragma omp section
-            QuickSortMerge(array + size / 2, res + size / 2, size - size / 2, pNum - pNum / 2);
+            QuickSortMerge(array + size / 2, res + size / 2,
+             size - size / 2, pNum - pNum / 2);
         }
-        Merge_Two_Arrays_Into_Res(array, array + size / 2, size / 2, size - size / 2, res);
-        std::copy(res, res + size, array);
+        Merge_Two_Arrays_Into_Res(array, array + size / 2,
+         size / 2, size - size / 2, res);
+        CopyArray(res, array, size);
 #pragma omp critical
         {
-            // std::cout << "Thread " << omp_get_thread_num() << " got and sort part of the array:" << std::endl;
             ShowArray(array, size);
         }
     }
-
-    /*
-    int size1 = size / 2;
-    int* arr1 = new int[size1];
-    std::copy(array, array + size1, arr1);
-    // ShowArray(arr1, size1);
-    int size2 = size - size / 2;
-    int* arr2 = new int[size2];
-    std::copy(array + size1, array + size1 + size2, arr2);
-    // ShowArray(arr2, size2);
-    quickSort(arr1, 0, size1 - 1);
-    quickSort(arr2, 0, size2 - 1);
-    Merge_Two_Arrays_Into_Res(arr1, arr2, size1, size2, res);
-    delete[] arr1;
-    delete[] arr2;
-    */
 }
 
 int main(int argc, char** argv) {
@@ -169,7 +141,6 @@ int main(int argc, char** argv) {
     int pNum;
     double tLin1, tLin2, tPar1, tPar2;
     double speed;
-    omp_set_nested(1);
     if (argc == 3) {
         size = atoi(argv[1]);
         pNum = atoi(argv[2]);
@@ -177,33 +148,27 @@ int main(int argc, char** argv) {
         size = 30000000;
         pNum = 8;
     }
+    omp_set_nested(1);
     omp_set_num_threads(pNum);
     array = new int[size];
     copy = new int[size];
     FillingArray(array, size, 0, 300000000);
-    // std::cout << "Initially the array looks like this: " << std::endl;
-    ShowArray(array, size);
-    std::copy(array, array + size, copy);
-    // quickSort(copy, 0, size-1);
+    CopyArray(array, copy, size);
     tLin1 = omp_get_wtime();
-    // std::sort(copy, copy + size);
     quickSort(copy, 0, size - 1);
     tLin2 = omp_get_wtime();
-    // std::cout << "Sorted array using quick sort: " << std::endl;
-    // ShowArray(copy, size);
     int* res = new int[size];
     tPar1 = omp_get_wtime();
     QuickSortMerge(array, res, size, pNum);
     tPar2 = omp_get_wtime();
-    // std::cout << "Sorted array using divide and conquer: " << std::endl;
-    // ShowArray(res, size);
     speed = (tLin2 - tLin1) / (tPar2 - tPar1);
-    // std::cout << "Sorted array using QuickSort: " << std::endl;
     ShowArray(copy, size);
-    std::cout << "Time of work std::sort (linear version): " << tLin2 - tLin1 << std::endl;
-    std::cout << "Time of work QuickSortMerge (parallel version): " << tPar2 - tPar1 << std::endl;
+    std::cout << "Time of work std::sort (linear version): ";
+    std::cout << tLin2 - tLin1 << std::endl;
+    std::cout << "Time of work QuickSortMerge (parallel version): ";
+    std::cout << tPar2 - tPar1 << std::endl;
     std::cout << "Speed: " << speed << std::endl;
-    if (std::equal(copy, copy + size, res)) {
+    if (AreArraysEqual(copy, res, size)) {
         std::cout << "Excellent! Arrays are matching" << std::endl;
     } else {
         std::cout << "Error! Arrays are not matching" << std::endl;
